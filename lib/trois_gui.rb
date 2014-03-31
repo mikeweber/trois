@@ -38,6 +38,7 @@ class TroisGui
   end
 
   def print_board
+    print_next_piece
     print_separator
     4.times do |row|
       4.times do |col|
@@ -52,6 +53,16 @@ class TroisGui
       puts "+"
       print_separator
     end
+  end
+
+  def print_next_piece
+    puts "         +=+"
+    puts "         |#{next_piece_value}|"
+  end
+
+  def next_piece_value
+    next_piece = board.next_piece
+    next_piece.value > 3 ? "+" : next_piece.value
   end
 
   def print_separator

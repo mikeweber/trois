@@ -179,13 +179,20 @@ class TroisBoard
     self.pieces.flatten.compact.size
   end
 
+  def next_piece
+    piece_stack.last
+  end
 
   private
 
   def random_piece
+    piece_stack.pop
+  end
+
+  def piece_stack
     @piece_stack ||= PieceStack.new
-    @piece_stack.refill!(self.max_piece_value) if @piece_stack.empty?
-    @piece_stack.pop
+    @piece_stack.refill!(self.max_piece_value) if @piece_stack.size <= 1
+    @piece_stack
   end
 
   def slide_board(x_offset, y_offset)
