@@ -1,63 +1,70 @@
-# require "curses"
-# include Curses
+require "curses"
 require 'io/console'
 require_relative "./trois_board"
 require_relative "./piece"
 
 class TroisGui
-  attr_reader :board
+  attr_reader :board, :window
 
   def initialize
-    # @win = Window.new
+    Curses.noecho
+    Curses.init_screen
+    @window = Curses::Window.new(12, 21, 0, 0)
     @board = TroisBoard.new
     pieces = []
     6.times do
       pieces << Piece.new(rand(3).to_i + 1)
     end
-    @board.randomly_add_pieces(pieces)
-    self.run
+    self.board.randomly_add_pieces(pieces)
   end
 
   def run
     running = true
     while running
       self.print_board
-      case STDIN.getch
-        when 'j'
+      char = window.getch
+      case char
+        when ?J, ?j, ?S, ?s
           board.slide_down!
-        when 'k'
+        when ?W, ?w, ?K, ?k
           board.slide_up!
-        when 'h'
+        when ?A, ?a, ?H, ?h
           board.slide_left!
-        when 'l'
+        when ?D, ?d, ?L, ?l
           board.slide_right!
-        when 'q'
+        when quit_key
           running = false
         end
+      running = self.board.playing? if running
     end
+    self.print_board
+    window << "Game over: #{board.points} pts"
+    window.refresh
   end
 
   def print_board
+    window.clear
     print_next_piece
     print_separator
     4.times do |row|
       4.times do |col|
         piece = board.piece_at(Pos.new(col, row))
-        print "+"
+        window << "+"
         if piece
-          print center_number(piece.value)
+          window << center_number(piece.value)
         else
-          print " " * self.spot_width
+          window << " " * self.spot_width
         end
       end
-      puts "+"
+      window << "+"
       print_separator
     end
+    window.refresh
   end
 
   def print_next_piece
-    puts "         +=+"
-    puts "         |#{next_piece_value}|"
+    window << "         +=+\n"
+    window << "         |#{next_piece_value}|\n"
   end
 
   def next_piece_value
@@ -66,7 +73,7 @@ class TroisGui
   end
 
   def print_separator
-    puts "+====+====+====+====+"
+    window << "+====+====+====+====+"
   end
 
   def center_number(num)
@@ -78,10 +85,6 @@ class TroisGui
 
   def spot_width
     4
-  end
-
-  def get_char
-    STDIN.getc.chr
   end
 end
 

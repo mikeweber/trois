@@ -1,5 +1,9 @@
 $LOAD_PATH.unshift(File.dirname(__FILE__))
-require 'lib/piece'
-require 'lib/piece_stack'
 require 'lib/trois_board'
+require 'lib/trois_gui'
+
+gui = TroisGui.new
+gui.run
+gui.window << "\nPress any key to quit"
+gui.window.getch
 
