@@ -32,7 +32,7 @@ class TroisGui
           board.slide_left!
         when ?D, ?d, ?L, ?l
           board.slide_right!
-        when quit_key
+        when ?Q, ?q
           running = false
         end
       running = self.board.playing? if running
