@@ -20,29 +20,52 @@ class TroisGui
 
   def run
     running = true
+    self.print_board(self.board)
     while running
-      self.print_board
       char = window.getch
       case char
-        when ?J, ?j, ?S, ?s
-          board.slide_down!
-        when ?W, ?w, ?K, ?k
-          board.slide_up!
-        when ?A, ?a, ?H, ?h
-          board.slide_left!
-        when ?D, ?d, ?L, ?l
-          board.slide_right!
+        when ' '
+          @temp_move = nil
+          self.print_board(self.board)
+        when ?j, ?s
+          self.make_move(:down)
+        when ?w, ?k
+          self.make_move(:up)
+        when ?a, ?h
+          self.make_move(:left)
+        when ?d, ?l
+          self.make_move(:right)
+        when ?J, ?S
+          make_temp_move(:down)
+        when ?W, ?K
+          make_temp_move(:up)
+        when ?A, ?H
+          make_temp_move(:left)
+        when ?D, ?L
+          make_temp_move(:right)
         when ?Q, ?q
           running = false
         end
       running = self.board.playing? if running
     end
-    self.print_board
     window << "Game over: #{board.points} pts"
     window.refresh
   end
 
-  def print_board
+  def make_move(direction)
+    @temp_move = nil
+    self.board.send("slide_#{direction}!")
+    self.print_board(self.board)
+  end
+
+  def make_temp_move(direction)
+    unless @temp_move == direction
+      @temp_move = direction
+      self.print_board(self.board.send("slide_#{direction}"), true)
+    end
+  end
+
+  def print_board(board, temp = false)
     window.clear
     print_next_piece
     print_separator
