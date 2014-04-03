@@ -206,6 +206,22 @@ class TroisBoard
     piece_stack.last
   end
 
+  def moved_columns(new_board)
+    columns = (0..(self.cols - 1)).reject do |col|
+      original_column = self.get_column(col)
+      new_column      = new_board.get_column(col)
+      pieces_match?(original_column, new_column)
+    end
+  end
+
+  def moved_rows(new_board)
+    rows = (0..(self.rows - 1)).reject do |row|
+      original_row = self.get_row(row)
+      new_row      = new_board.get_row(row)
+      pieces_match?(original_row, new_row)
+    end
+  end
+
   private
 
   def random_piece
@@ -240,22 +256,6 @@ class TroisBoard
     end
 
     new_board
-  end
-
-  def moved_columns(new_board)
-    columns = (0..(self.cols - 1)).reject do |col|
-      original_column = self.get_column(col)
-      new_column      = new_board.get_column(col)
-      pieces_match?(original_column, new_column)
-    end
-  end
-
-  def moved_rows(new_board)
-    rows = (0..(self.rows - 1)).reject do |row|
-      original_row = self.get_row(row)
-      new_row      = new_board.get_row(row)
-      pieces_match?(original_row, new_row)
-    end
   end
 
   def pieces_match?(row1, row2)
