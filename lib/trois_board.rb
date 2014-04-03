@@ -1,4 +1,5 @@
 require_relative './piece_stack'
+
 class TroisBoard
   attr_reader :cols, :rows, :pieces
 
@@ -6,6 +7,12 @@ class TroisBoard
     @cols = cols
     @rows = rows
     clear!
+  end
+
+  def setup
+    6.times do
+      randomly_add_pieces([random_piece])
+    end
   end
 
   def randomly_add_pieces(piece_list)
@@ -40,37 +47,53 @@ class TroisBoard
   def slide_up!
     return unless self.can_move_up?
 
-    new_board = slide_up
-    columns = moved_columns(new_board)
-    new_board.add_piece(random_piece, Pos.new(columns.sample, (self.rows - 1)))
-    replace_board!(new_board)
+    replace_board!(slide_up_with_new_piece)
+  end
+
+  def slide_up_with_new_piece
+    slide_up.tap do |new_board|
+      columns = moved_columns(new_board)
+      new_board.add_piece(random_piece, Pos.new(columns.sample, (self.rows - 1)))
+    end
   end
 
   def slide_down!
     return unless self.can_move_down?
 
-    new_board = slide_down
-    columns = moved_columns(new_board)
-    new_board.add_piece(random_piece, Pos.new(columns.sample, 0))
-    replace_board!(new_board)
+    replace_board!(slide_down_with_new_piece)
+  end
+
+  def slide_down_with_new_piece
+    slide_down.tap do |new_board|
+      columns = moved_columns(new_board)
+      new_board.add_piece(random_piece, Pos.new(columns.sample, 0))
+    end
   end
 
   def slide_left!
     return unless self.can_move_left?
 
-    new_board = slide_left
-    rows = moved_rows(new_board)
-    new_board.add_piece(random_piece, Pos.new((self.cols - 1), rows.sample))
-    replace_board!(new_board)
+    replace_board!(slide_left_with_new_piece)
+  end
+
+  def slide_left_with_new_piece
+    slide_left.tap do |new_board|
+      rows = moved_rows(new_board)
+      new_board.add_piece(random_piece, Pos.new((self.cols - 1), rows.sample))
+    end
   end
 
   def slide_right!
     return unless self.can_move_right?
 
-    new_board = slide_right
-    rows = moved_rows(new_board)
-    new_board.add_piece(random_piece, Pos.new(0, rows.sample))
-    replace_board!(new_board)
+    replace_board!(slide_right_with_new_piece)
+  end
+
+  def slide_right_with_new_piece
+    slide_right.tap do |new_board|
+      rows = moved_rows(new_board)
+      new_board.add_piece(random_piece, Pos.new(0, rows.sample))
+    end
   end
 
   def add_piece(piece, pos)

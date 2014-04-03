@@ -1,6 +1,8 @@
+require_relative './piece'
+
 class PieceStack < Array
   def refill!(max)
-    if max >= 48
+    if max && max >= 48
       if @include_wild.nil?
         @include_wild = false
       else
