@@ -9,13 +9,9 @@ class TroisGui
   def initialize
     Curses.noecho
     Curses.init_screen
-    @window = Curses::Window.new(12, 21, 0, 0)
+    @window = Curses::Window.new(12, 22, 0, 0)
     @board = TroisBoard.new
-    pieces = []
-    6.times do
-      pieces << Piece.new(rand(3).to_i + 1)
-    end
-    self.board.randomly_add_pieces(pieces)
+    @board.setup
   end
 
   def run
@@ -67,47 +63,8 @@ class TroisGui
 
   def print_board(board, temp = false)
     window.clear
-    print_next_piece
-    print_separator
-    4.times do |row|
-      4.times do |col|
-        piece = board.piece_at(Pos.new(col, row))
-        window << "+"
-        if piece
-          window << center_number(piece.value)
-        else
-          window << " " * self.spot_width
-        end
-      end
-      window << "+"
-      print_separator
-    end
+    window << TroisBoardPrinter.new(board).print_board
     window.refresh
-  end
-
-  def print_next_piece
-    window << "         +=+\n"
-    window << "         |#{next_piece_value}|\n"
-  end
-
-  def next_piece_value
-    next_piece = board.next_piece
-    next_piece.value > 3 ? "+" : next_piece.value
-  end
-
-  def print_separator
-    window << "+====+====+====+====+"
-  end
-
-  def center_number(num)
-    pad_left = (self.spot_width - num.to_s.length) / 2
-    pad_right = self.spot_width - num.to_s.length - pad_left
-
-    " " * pad_left + num.to_s + " " * pad_right
-  end
-
-  def spot_width
-    4
   end
 end
 
