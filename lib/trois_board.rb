@@ -198,6 +198,10 @@ class TroisBoard
     self.pieces.flatten.compact.collect { |x| x.value }.max
   end
 
+  def positions_of(value)
+    self.pieces.flatten.compact.select { |x| x == value }
+  end
+
   def size
     self.pieces.flatten.compact.size
   end
@@ -224,6 +228,7 @@ class TroisBoard
 
   private
 
+  # This method assumes the stack has already been shuffled, and therefore the next piece is random
   def random_piece
     piece_stack.pop
   end
