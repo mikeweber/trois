@@ -90,7 +90,12 @@ class TroisPlayer
   def score_board(board)
     score = board.points * board.available_moves.size / 4
     score *= 1 + (0.1 * top_pieces_adjacent(board))
-    score *= 1 + (0.1 * encourage_adjacent_matches(board, board.max_piece_value))
+    max_value = board.max_piece_value
+    while max_value >= 3
+      score *= 1 + (0.5 * encourage_adjacent_matches(board, max_value))
+      max_value /= 2
+    end
+    score *= 1 + (0.5 * encourage_adjacent_matches(board, 2, 1))
     score *= 1 + (0.2 * open_spots(board))
 
     return score
@@ -98,14 +103,11 @@ class TroisPlayer
 
   # discover the number of adjacent matches. joins should be
   # preferred as this encouraged by the higher points
-  def encourage_adjacent_matches(board, max_piece, adjacent = 0)
-    return adjacent if max_piece < 3
+  def encourage_adjacent_matches(board, max_piece, other_piece = nil)
+    return 0 if max_piece < 3
+    other_piece ||= max_piece
 
-    if pieces_adjacent?(board, max_piece, max_piece)
-      adjacent = encourage_adjacent_matches(board, max_piece / 2, adjacent + 1)
-    end
-
-    return adjacent
+    pieces_adjacent?(board, max_piece, other_piece) ? 1 : 0
   end
 
   # this encourages "rivers" to form
