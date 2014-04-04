@@ -1,12 +1,17 @@
+require 'curses'
 require_relative './trois_board'
 require_relative './trois_board_printer'
 
 class TroisPlayer
-  attr_reader :board, :moves_made
+  attr_reader :board, :moves_made, :window
 
   def initialize(board, debug = false)
     @board = board
-    @debug = debug
+    unless @debug = debug
+      Curses.noecho
+      Curses.init_screen
+      @window = Curses::Window.new(20, 22, 0, 0)
+    end
     @moves_made = 0
   end
 
@@ -25,6 +30,7 @@ class TroisPlayer
       self.play
     else
       print_output
+      window.getch if window
     end
   end
 
@@ -92,7 +98,7 @@ class TroisPlayer
     score *= 1 + (0.1 * top_pieces_adjacent(board))
     max_value = board.max_piece_value
     while max_value >= 3
-      score *= 1 + (0.5 * encourage_adjacent_matches(board, max_value))
+      score *= 1 + (0.2 * encourage_adjacent_matches(board, max_value) * Piece.rank_of(max_value))
       max_value /= 2
     end
     score *= 1 + (0.5 * encourage_adjacent_matches(board, 2, 1))
@@ -158,29 +164,41 @@ class TroisPlayer
   def make_move(direction)
     board.send("slide_#{direction}!")
     @moves_made += 1
-    puts "\nMove #{@moves_made}:\n#{direction}#{print_board}\n" if self.debug?
+    window.clear if window
+    print_out "\nMove #{moves_made}:\n#{direction}\n#{print_board}\n"
+    window.refresh if window
   end
 
   def debug_score(direction, score)
-    puts "Score for #{direction}: #{score}"
+    print_out "Score for #{direction}: #{score}"
   end
 
   def print_output
+    window.clear if window
     print_board
     print_score
     print_moves_made
+    window.refresh if window
   end
 
   def print_board
-    puts TroisBoardPrinter.new(self.board).print_board
+    print_out TroisBoardPrinter.new(self.board).print_board
   end
 
   def print_score
-    puts "Final score: #{self.board.points} pts"
+    print_out "Final score: #{self.board.points} pts"
   end
 
   def print_moves_made
-    puts "Made #{self.moves_made} moves"
+    print_out "\nMade #{self.moves_made} moves"
+  end
+
+  def print_out(msg)
+    if window
+      window << msg
+    else
+      puts msg
+    end
   end
 end
 
