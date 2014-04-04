@@ -129,6 +129,7 @@ class TroisBoard
   end
 
   def piece_at(pos)
+    return unless position_in_bounds?(pos)
     @pieces[pos.x][pos.y]
   end
 
