@@ -15,7 +15,8 @@ class TroisPlayer
   end
 
   def play
-    moves = calculate_moves(4)
+    depth = [(self.board.size / 3).to_i, 3].max
+    moves = calculate_moves(depth)
     @initial_depth = nil
     _, best_move = find_best_move(moves)
 
@@ -89,7 +90,22 @@ class TroisPlayer
   def score_board(board)
     score = board.points * board.available_moves.size / 4
     score *= 1 + (0.1 * top_pieces_adjacent(board))
-    score
+    score *= 1 + (0.1 * encourage_adjacent_matches(board, board.max_piece_value))
+    score *= 1 + (0.2 * open_spots(board))
+
+    return score
+  end
+
+  # discover the number of adjacent matches. joins should be
+  # preferred as this encouraged by the higher points
+  def encourage_adjacent_matches(board, max_piece, adjacent = 0)
+    return adjacent if max_piece < 3
+
+    if pieces_adjacent?(board, max_piece, max_piece)
+      adjacent = encourage_adjacent_matches(board, max_piece / 2, adjacent + 1)
+    end
+
+    return adjacent
   end
 
   # this encourages "rivers" to form
@@ -107,6 +123,10 @@ class TroisPlayer
     positions_of_value1 = board.positions_of(value1)
     offsets = [[-1, 0], [1, 0], [0, -1], [0, 1]]
     offsets.any? { |col, row| board.piece_at(Pos.new(col, row)) == value2 }
+  end
+
+  def open_spots(board)
+    return (board.rows * board.cols) - board.size
   end
 
   def find_best_move(moves)
