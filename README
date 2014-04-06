@@ -1,9 +1,9 @@
 Trois
 =====
-This is a game about combining numbers. To play, run trois.rb. You can play the game by using
+This is a game about combining numbers. To play, run play_trois.rb. You can play the game by using
 WSAD or VIM HJKL keys to slide the board and combine the numbers. To preview a move, hold shift
 when picking the direction you want to slide the board, and press space to reset the board.
 
 AI
 ==
-To have the computer play the game itself, run play_trois.rb.
+To have the computer play the game itself, run ai_play_trois.rb.

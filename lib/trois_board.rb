@@ -200,7 +200,14 @@ class TroisBoard
   end
 
   def positions_of(value)
-    self.pieces.flatten.compact.select { |x| x == value }
+    positions = []
+    self.cols.times do |col|
+      self.rows.times do |row|
+        positions << [col, row] if self.piece_at(Pos.new(col, row)) == value
+      end
+    end
+
+    return positions
   end
 
   def size
