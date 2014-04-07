@@ -122,7 +122,7 @@ class TroisPlayer
     adjacent_score = 1
     max_value = board.max_piece_value
     while max_value >= 3
-      adjacent_score *= (1 + (0.2 * encourage_adjacent_matches(board, max_value) * Piece.rank_of(max_value)))
+      adjacent_score *= (1 + (0.5 * encourage_adjacent_matches(board, max_value) * Piece.rank_of(max_value)))
       max_value /= 2
     end
     adjacent_score *= (1 + (encourage_adjacent_matches(board, 2, 1)))
@@ -130,10 +130,10 @@ class TroisPlayer
 
     scores = {
       base:       board.points,
-      moves:      (board.available_moves.size / 4),
+      moves:      (board.available_moves.size.to_f / 4),
       river:      (1 + (0.1 * encourage_river(board))),
       adjacency:  adjacent_score,
-      openness:   [(open_spots(board) - open_spots(previous_board) + 1), 0].max
+      openness:   (0.5 * [(open_spots(board) - open_spots(previous_board) + 1), 0.5].max)
     }
     logger.info(scores)
 
