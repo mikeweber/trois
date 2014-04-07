@@ -50,20 +50,29 @@ class TroisPlayer
     @initial_depth ||= depth
     return if depth == 0
 
+    # to speed up the game, repeat up and left moves until a 48 pt piece exists
+    if board.max_piece_value <= 48
+      preferred_moves = [:up, :left, :right, :down]
+      preferred_moves.each do |direction|
+        if board.available_moves.include?(direction)
+          return { direction => { scores: [1], moves: [] }}
+        end
+      end
+    end
     moves = board.available_moves.inject({}) do |potential_moves, direction|
       potential_moves[direction] = { scores: [], moves: [] }
       next_possible_pieces(board, depth == @initial_depth).each do |piece|
         scores = self.send("scores_slide_#{direction}", board, piece)
-        scores.each do |next_board, score|
-          potential_moves[direction][:scores] << score
-          potential_moves[direction][:moves] << calculate_moves(next_board, depth - 1)
-          potential_moves[direction][:moves].compact!
+        scores.each do |next_board, score_and_explanation|
+          potential_moves[direction][:scores] << score_and_explanation
+          if calculated_moves = calculate_moves(next_board, depth - 1)
+            potential_moves[direction][:moves] << calculated_moves
+          end
         end
       end
 
       potential_moves
     end
-
 
     return moves
   end
@@ -185,45 +194,32 @@ class TroisPlayer
 
   def find_best_move(moves)
     max_score = 0
-    max_direction = nil
-    return [0, nil] if moves.nil? || moves.empty?
+    potential_best_moves = []
+    return [nil, 0] if moves.nil? || moves.empty?
 
-    scores = max_scores_per_direction(moves)
-    logger.info(scores)
-    scores.each do |score, direction|
-      if score > max_score
-        max_score = score 
-        max_direction = direction
+    moves.each do |direction, attrs|
+      next if attrs.nil?
+      avg = avg(attrs[:scores].collect { |score, _| score })
+      moves[direction][:avg] = avg
+      if avg >= max_score
+        max_score = avg
+        potential_best_moves << [direction, avg]
+      end
+      attrs[:moves].each do |other_moves|
+        _, potential_move = find_best_move(other_moves)
+        if potential_move >= max_score
+          max_score = potential_move
+          potential_best_moves << [direction, potential_move]
+        end
       end
     end
-    directions = scores.select { |score, direction| score == max_score }
 
-    return directions.sample
+    best_moves = potential_best_moves.select { |_, score| score == max_score }
+    return best_moves.sample || []
   end
 
-  def max_scores_per_direction(moves)
-    moves.collect do |direction, attrs|
-      max_score = 0
-      max_direction = nil
-
-      debug_score(direction, attrs[:scores]) if self.debug? && attrs
-      unless attrs.nil? || attrs[:scores].nil? || attrs[:scores].empty?
-        if attrs[:scores].max > max_score
-          max_score = attrs[:scores].max
-          max_direction = direction
-        elsif attrs[:scores].max == max_score && rand > 0.5
-          max_score = attrs[:scores].max
-          max_direction = direction
-        end
-
-        potential_score, _ = find_best_move(attrs[:moves])
-        if potential_score > max_score
-          max_score = potential_score
-          max_direction = direction
         end
       end
-
-      [max_score, max_direction]
     end
   end
 

@@ -98,9 +98,40 @@ describe TroisPlayer do
         board.add_piece(Piece.new(3), Pos.new(1, 2))
       end
 
-      it "should not beadjacent" do
+      it "should not be adjacent" do
         player.pieces_adjacent?(board, 3, 3).should be_false
       end
+    end
+  end
+
+  context "when finding the best move" do
+    it "should return the move with the highest score" do
+      moves = { left: { scores: [10], moves: [] }, right: { scores: [15], moves: [] }, up: { scores: [7], moves: [] }, down: { scores: [20], moves:[] } }
+
+      player.find_best_move(moves).should == [:down, 20]
+    end
+
+    it "should return the move with the highest average score" do
+
+      moves = { left: { scores: [10, 20], moves: [] }, right: { scores: [25, 29], moves: [] }, up: { scores: [7, 17], moves: [] }, down: { scores: [20, 30], moves:[] } }
+
+      player.find_best_move(moves).should == [:right, 27]
+    end
+
+    it "should return a move when a child node has a higher average" do
+      moves = {
+        left:  { scores: [10, 20], moves: [] },
+        right: { scores: [25, 29], moves: [] },
+        up:    { scores: [7,  17], moves: [
+          {
+            left:  { scores: [50], moves: [] },
+            right: { scores: [10], moves: [] }
+          }
+        ]},
+        down:  { scores: [20, 30], moves: []}
+      }
+
+      player.find_best_move(moves).should == [:up, 50]
     end
   end
 end
