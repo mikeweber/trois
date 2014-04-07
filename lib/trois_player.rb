@@ -7,6 +7,16 @@ require_relative './trois_board_printer'
 class TroisPlayer
   attr_reader :board, :moves_made, :window, :logger
 
+  def self.cache_board_score(board, score)
+    @@board_cache ||= {}
+    @@board_cache[board] = score
+  end
+
+  def self.board_cache(board)
+    @@board_cache ||= {}
+    @@board_cache[board]
+  end
+
   def initialize(board, debug = false)
     logfile = File.open("debug.log", File::WRONLY | File::APPEND | File::CREAT)
     @logger = Logger.new(logfile)
@@ -34,14 +44,10 @@ class TroisPlayer
 
   def best_move(depth)
     @initial_depth = nil
+    time = Time.now
     moves = calculate_moves(self.board, depth)
-    if debug?
-      # print_tree(moves)
-      print_out max_scores_per_direction(moves).inspect
-      # print_out "press enter to continue"
-      # gets
-    end
-    _, best_move = find_best_move(moves)
+    logger.info("Move calculation of #{tree_node_size(moves)} nodes took #{Time.now - time}s")
+    best_move, _ = find_best_move(moves)
 
     return best_move
   end
@@ -119,6 +125,11 @@ class TroisPlayer
   end
 
   def score_board(previous_board, board)
+    if previous_score = self.class.board_cache(board)
+      logger.info("Cache hit: #{previous_score}\n#{printed_board(board)}")
+      return previous_score
+    end
+
     adjacent_score = 1
     max_value = board.max_piece_value
     while max_value >= 3
@@ -128,16 +139,18 @@ class TroisPlayer
     adjacent_score *= (1 + (encourage_adjacent_matches(board, 2, 1)))
     adjacent_score *= (1 + (encourage_adjacent_matches(board, 1, 2)))
 
-    scores = {
+    explanations = {
       base:       board.points,
       moves:      (board.available_moves.size.to_f / 4),
       river:      (1 + (0.1 * encourage_river(board))),
       adjacency:  adjacent_score,
       openness:   (0.5 * [(open_spots(board) - open_spots(previous_board) + 1), 0.5].max)
     }
-    logger.info(scores)
 
-    return scores.values.inject(1) { |score, value| score * value }
+    calculated_score = explanations.values.inject(1) { |score, value| score * value }
+
+    self.class.cache_board_score(board, calculated_score)
+    return [calculated_score, explanations]
   end
 
   # discover the number of adjacent matches. joins should be
@@ -231,10 +244,6 @@ class TroisPlayer
     window.refresh if window
   end
 
-  def debug_score(direction, score)
-    print_out "Score for #{direction}: #{score}"
-  end
-
   def print_output
     window.clear if window
     print_board
@@ -247,8 +256,12 @@ class TroisPlayer
     pp tree
   end
 
-  def print_board
-    print_out TroisBoardPrinter.new(self.board).print_board
+  def print_board(board = self.board)
+    print_out printed_board(board)
+  end
+
+  def printed_board(board)
+    TroisBoardPrinter.new(board).print_board
   end
 
   def print_score
@@ -265,6 +278,11 @@ class TroisPlayer
     else
       puts msg
     end
+  end
+
+  def avg(array)
+    return 0 if array.nil?
+    array.inject(0) { |sum, el| sum + el }.to_f / array.size
   end
 
   def debug?

@@ -234,6 +234,14 @@ class TroisBoard
     end
   end
 
+  def ==(other)
+    self.pieces.flatten == other.pieces.flatten
+  end
+
+  def hash
+    self.pieces.flatten.inspect.hash
+  end
+
   private
 
   # This method assumes the stack has already been shuffled, and therefore the next piece is random
