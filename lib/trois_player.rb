@@ -210,30 +210,37 @@ class TroisPlayer
     potential_best_moves = []
     return [nil, 0] if moves.nil? || moves.empty?
 
-    moves.each do |direction, attrs|
-      next if attrs.nil?
-      avg = avg(attrs[:scores].collect { |score, _| score })
-      moves[direction][:avg] = avg
-      if avg >= max_score
-        max_score = avg
-        potential_best_moves << [direction, avg]
-      end
-      attrs[:moves].each do |other_moves|
-        _, potential_move = find_best_move(other_moves)
-        if potential_move >= max_score
-          max_score = potential_move
-          potential_best_moves << [direction, potential_move]
-        end
+    flattened_tree = self.flatten_tree(moves)
+    flattened_tree.each do |direction, score|
+      if score > max_score
+        max_score = score
+        potential_best_moves << [direction, score]
       end
     end
+    logger.debug("Max scores: #{flattened_tree.inspect}")
 
     best_moves = potential_best_moves.select { |_, score| score == max_score }
     return best_moves.sample || []
   end
 
+  def flatten_tree(moves)
+    move_attrs = {}
+
+    moves.each do |direction, attrs|
+      next if attrs.nil?
+      avg = avg(attrs[:scores].collect { |score, _| score })
+      move_attrs[direction] = avg
+      attrs[:moves].each do |other_moves|
+        child_tree = self.flatten_tree(other_moves)
+        child_tree.each do |_, child_avg|
+          if child_avg > move_attrs[direction]
+            move_attrs[direction] = child_avg
+          end
         end
       end
     end
+
+    return move_attrs
   end
 
   def make_move(direction)

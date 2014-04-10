@@ -112,7 +112,6 @@ describe TroisPlayer do
     end
 
     it "should return the move with the highest average score" do
-
       moves = { left: { scores: [10, 20], moves: [] }, right: { scores: [25, 29], moves: [] }, up: { scores: [7, 17], moves: [] }, down: { scores: [20, 30], moves:[] } }
 
       player.find_best_move(moves).should == [:right, 27]
